@@ -15,8 +15,8 @@ def filter_by_ratings(file_path, movie_df):
     print("Filtering movies by ratings and popularity...")
 
     movie_ratings_df = ratings_df[ratings_df['tconst'].isin(movie_df['tconst'])]
-    # Popular movies must have a rating of over 7.0 based on more than 10,000 votes
-    popular_movies_df = movie_ratings_df[(movie_ratings_df['numVotes'] > 10000) & (movie_ratings_df['averageRating'] > 7.0)]
+    # Popular movies must have a rating of over 7.0 based on more than 7,500 votes
+    popular_movies_df = movie_ratings_df[(movie_ratings_df['numVotes'] > 7500) & (movie_ratings_df['averageRating'] > 7.0)]
     print("Movie ratings:", len(movie_ratings_df), "\nFiltered popular movie ratings:", len(popular_movies_df))
 
     # popular_movies_df.to_csv("data/curated/title.ratings.csv", index=False)
@@ -32,7 +32,7 @@ def filter_title_basics(basics_df, movies_list):
     filtered_basics_df.loc[:, 'genres'] = filtered_basics_df['genres'].str.replace(',', ' ')
     print("Total entries:", len(basics_df), "\nFiltered length:", len(filtered_basics_df))
 
-    trimmed_basics_df = filtered_basics_df.drop(columns=['tconst', 'titleType'])
+    trimmed_basics_df = filtered_basics_df.drop(columns=['tconst', 'titleType', 'endYear'])
 
     trimmed_basics_df.to_csv("data/curated/title.basics.csv", index=False)
     print("Curated title basics saved!")

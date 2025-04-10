@@ -4,19 +4,11 @@ from langchain.schema import Document
 from langchain_chroma import Chroma
 from langchain_core.prompts import ChatPromptTemplate
 from dotenv import load_dotenv
-
-import pandas as pd
 import os
 import shutil
 
 DATA_PATH = "data/curated"
 CHROMA_PATH = "chroma"
-
-def sample_tsv_loader(file_path):
-    df = pd.read_csv(file_path)
-    df['content'] = df[df.columns].astype(str).agg(' '.join, axis=1)
-    return DataFrameLoader(df, page_content_column="content")
-
 
 def load_documents():
     print("Loading documents...")
@@ -35,18 +27,28 @@ def save_to_chroma(documents: list[Document]):
     print(f"Saved {len(documents)} chunks to {CHROMA_PATH}.")
 
 
+def print_results(sim_search_results):
+    for doc, score in sim_search_results:
+        print(doc.page_content)
+        print("Similarity score:", score)
+        print()
+        print()
+
+
 def query_rag(query):
     print("Processing query...")
 
     embedding_function = OpenAIEmbeddings()
     db = Chroma(persist_directory=CHROMA_PATH, embedding_function=embedding_function)
-    results = db.similarity_search_with_relevance_scores(query, k=3)
+    results = db.similarity_search_with_relevance_scores(query, k=5)
     if len(results) == 0:
         print(f"Unable to find matching results.")
     elif results[0][1] < 0.7:
         print(f"WARNING: Query has low similarity to stored embeddings ({results[0][1]})")
 
-    context_text = "\n\n - -\n\n".join([doc.page_content for doc, _score in results])
+    print_results(results)
+
+    context_text = "\n\n".join([doc.page_content for doc, _ in results])
     prompt_template = """
         You are the LLM generator in a RAG movie recommendation system. In this system, you must answers questions based
         on the provided context. Use the context to answer the question, and if the answer is not in the context, find 
@@ -85,5 +87,5 @@ if __name__ == "__main__":
         query_text = input("Please enter your query: ")
 
         response_text = query_rag(query_text)
-        print("Response:", response_text.content)
+        print(response_text.content)
         print()

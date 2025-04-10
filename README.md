@@ -17,6 +17,15 @@ pip install -r requirements.txt
 
 ## Usage
 
+### Export OpenAI API key
+
+To authenticate your API reference with OpenAI, [create an API key](https://platform.openai.com/api-keys) and set 
+environment variable `OPENAI_API_KEY`.
+
+```
+export OPENAI_API_KEY="your-api-key"
+```
+
 ### Running MovieRAG
 
 To execute the MovieRAG application, run:
