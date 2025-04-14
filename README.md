@@ -40,13 +40,14 @@ The data curator will use the .tsv data in `data/raw` to create a curated .csv m
 formatted and structured to allow for useful word embeddings. With default settings, this application takes approximately
 2 minutes to run to completion on my computer.
 ```
-python data_curator.py [-h] [-r RATING] [-v VOTE]
+python data_curator.py [-h] [-r RATING] [-v VOTE] [-c]
 ```
 * -h, --help: Show the help message and exit.
 * -r RATING, --rating RATING: Minimum rating required for a movie to be included in the curated dataset.
 Type: float | Default: 7.0 
 * -v VOTE, --vote VOTE: Minimum number of votes required for a movie to qualify.
 Type: int | Default: 1000
+* -c, --cag: Store curated data in the `data/curated/cag` folder (as opposed to the default `data/curated/rag` folder)
 
 ### Export OpenAI API key
 
@@ -72,7 +73,7 @@ To execute the MovieCAG application, run:
 python cag.py [-h] [-v]
 ```
 * -h, --help: Show help message and exit.
-* -v, --verbose: Enable verbose mode to print results from the query similarity search.
+* -v, --verbose: Enable verbose mode to print the entire input fed into the chat model.
 
 ## Features
 * #### Retrieval-Augmented Generation (RAG)
