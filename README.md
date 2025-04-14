@@ -7,6 +7,8 @@ responses to movie recommendation requests. It combines a ChromaDB based retriev
 fetches relevant vector-embedded movie data (based on user prompt) and provides it to the generator with the original 
 user’s query. The generator uses this additional context to generate an accurate and relevant response.
 
+Update: This application now also supports CAG capabilities on a smaller dataset.
+
 ## Table of Contents
 - [Installation](#installation)
 - [Usage](#usage)
@@ -27,7 +29,7 @@ Raw IMDb structured data has already been curated for word embedding based RAG u
 as `data/curated/movie_curated.csv`. This step can be skipped if the existing curated data is satisfactory.
 #### 1. Download Raw Data
 Download the following four [IMDb Non-Commercial Datasets](https://datasets.imdbws.com/) and move them to the `data/raw`
-folder:
+directory:
 1. `name.basics.tsv`
 2. `title.basics.tsv`
 3. `title.principals.tsv`
@@ -56,24 +58,32 @@ environment variable](https://help.openai.com/en/articles/5112595-best-practices
 To execute the MovieRAG application, run:
 
 ```
-python chroma_rag.py [-h] [-d] [-k K]
+python chroma_rag.py [-h] [-v] [-k K]
 ```
 * -h, --help: Show help message and exit.
-* -d, --debug: Enable debug mode to print results from the query similarity search.
+* -v, --verbose: Enable verbose mode to print results from the query similarity search.
 * -k K: Specify the number of documents to return from the query similarity search (default: 3).
+
+### Running MovieCAG
+
+To execute the MovieCAG application, run:
+
+```
+python cag.py [-h] [-v]
+```
+* -h, --help: Show help message and exit.
+* -v, --verbose: Enable verbose mode to print results from the query similarity search.
 
 ## Features
 * #### Retrieval-Augmented Generation (RAG)
     Combines ChromaDB-based document retrieval with OpenAI's GPT to generate context-aware movie recommendations.
+* #### Cache-Augmented Generation (CAG)
+    Provides a cache memory to OpenAI's GPT to generate context-aware movie recommendations.
 * #### Context-Enriched Responses
     Enhances natural language queries using semantically relevant data pulled from a curated IMDb dataset.
 * #### Custom Curated Dataset
     Includes a script to process raw IMDb .tsv data into a clean .csv format optimized for word embeddings and vector search.
 * ##### Flexible Query Parameters
     Easily configure the number of context documents returned with -k, or enable debug mode with -d for insight into retrieval results.
-* #### OpenAI Integration:
-    Seamlessly integrates with OpenAI's API to generate high-quality, personalized movie recommendations.
-* #### Lightweight and Fast
-    Efficient data processing and retrieval ensure quick performance even on large datasets.
 * #### Modular Design for Experimentation
     Clean separation between data curation, retrieval, and generation logic for easier experimentation and extension.

@@ -8,7 +8,7 @@ import os
 import shutil
 import argparse
 
-DATA_PATH = "data/curated"
+DATA_PATH = "data/curated/rag"
 CHROMA_PATH = "chroma"
 
 def load_documents():
@@ -52,15 +52,7 @@ def query_rag(query, k_value=3, print_results_log=False):
         print_results(results)
 
     context_text = "\n\n".join([doc.page_content for doc, _ in results])
-    prompt_template = """
-            You are the LLM generator in a RAG movie recommendation system. In this system, you must answers questions based
-            on the provided context. Answer the questions strictly from the given context. I want to text the efficacy of my
-            retriever so just render the context received from the retriever without adding any information from your own 
-            knowledge. Do not make up information.
-    
-            Context: {context}
-            Question: {question}
-            """
+
     prompt_template = """
             You are the LLM generator in a RAG movie recommendation system. In this system, you must answers questions based
             on the provided context. Use the context to answer the question, and if the answer is not in the context, find
@@ -82,13 +74,14 @@ def query_rag(query, k_value=3, print_results_log=False):
 
 
 if __name__ == "__main__":
+    load_documents()
     if not os.getenv("OPENAI_API_KEY"):
         print("OpenAI API key not set.")
         exit(1)
 
     parser = argparse.ArgumentParser(description="Specify hyperparameters for query similarity search.")
-    parser.add_argument("-d", "--debug", action="store_true",
-                        help="Enable debug mode: Prints results from query similarity search to stdout.")
+    parser.add_argument("-v", "--verbose", action="store_true",
+                        help="Enable verbose mode: Prints results from query similarity search to stdout.")
     parser.add_argument("-k", type=int, default=3,
                         help="k (int): Number of Documents to return in query similarity search (default: 3)")
     args = parser.parse_args()
@@ -111,6 +104,6 @@ if __name__ == "__main__":
     while True:
         query_text = input("Please enter your query: ")
 
-        response_text = query_rag(query_text, args.k, args.debug)
+        response_text = query_rag(query_text, args.k, args.verbose)
         print(response_text.content)
         print()
