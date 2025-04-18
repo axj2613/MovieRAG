@@ -74,7 +74,7 @@ def query_rag(query, k_value=3, print_results_log=False):
 
 
 if __name__ == "__main__":
-    load_documents()
+    print(os.getenv("OPENAI_API_KEY"))
     if not os.getenv("OPENAI_API_KEY"):
         print("OpenAI API key not set.")
         exit(1)

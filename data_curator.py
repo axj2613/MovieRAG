@@ -31,13 +31,18 @@ def filter_by_ratings(file_path, movie_df, min_votes=1000, min_rating=7.0):
 def filter_title_basics(basics_df, movies_list):
     print("Filtering movie titles from the basics dataset...")
     filtered_basics_df = basics_df[basics_df['tconst'].isin(movies_list)]
-    filtered_basics_df.loc[:, 'genres'] = filtered_basics_df['genres'].str.replace(',', ' ')
+    # filtered_basics_df.loc[:, 'genres'] = filtered_basics_df['genres'].str.replace(',', ' ')
     print("Total entries:", len(basics_df), "\nFiltered length:", len(filtered_basics_df))
 
-    trimmed_basics_df = filtered_basics_df.drop(columns=['tconst', 'titleType', 'endYear'])
+    trimmed_basics_df = filtered_basics_df.drop(columns=['titleType', 'endYear', 'genres'])
 
-    # trimmed_basics_df.to_csv("data/curated/title.basics.csv", index=False)
-    # print("Curated title basics saved!")
+    trimmed_basics_df.to_csv("data/curated/title.basics.csv", index=False)
+
+    genres_df = filtered_basics_df[['tconst', 'genres']].copy()
+    genres_df['genres'] = genres_df['genres'].str.split(',')
+    genres_df = genres_df.explode('genres')
+    genres_df.to_csv("data/curated/title.genres.csv", index=False)
+    print("Curated title basics saved!")
     print()
 
     return filtered_basics_df
@@ -62,21 +67,22 @@ def filter_title_principals(file_path, movies_list, movies_df, people_df, folder
     print("Filtering movie titles from the principals dataset...")
     filtered_principals_df = principals_df[principals_df['tconst'].isin(movies_list)]
 
-    filtered_principals_df = subset_cast_crew(filtered_principals_df)
-
-
+    # filtered_principals_df = subset_cast_crew(filtered_principals_df)
+    #
+    #
     merged_movies_df = filtered_principals_df.merge(movies_df[['tconst', 'originalTitle']], on='tconst', how='left')
     merged_names_df = merged_movies_df.merge(people_df[['nconst', 'primaryName']], on='nconst', how='left')
+    #
+    # grouped_names_df = merged_names_df.groupby(['originalTitle', 'category'])['primaryName'].apply(lambda x: ' '.join(str(name) for name in x if pd.notnull(name)))
+    # grouped_names_df = grouped_names_df.reset_index()
+    # pivot_df = grouped_names_df.pivot(index='originalTitle', columns='category', values='primaryName')
+    # pivot_df = pivot_df.reset_index()
+    #
+    # result_df = pivot_df.merge(movies_df[['originalTitle', 'isAdult', 'startYear', 'runtimeMinutes', 'genres']], on='originalTitle', how='left')
 
-    grouped_names_df = merged_names_df.groupby(['originalTitle', 'category'])['primaryName'].apply(lambda x: ' '.join(str(name) for name in x if pd.notnull(name)))
-    grouped_names_df = grouped_names_df.reset_index()
-    pivot_df = grouped_names_df.pivot(index='originalTitle', columns='category', values='primaryName')
-    pivot_df = pivot_df.reset_index()
-
-    result_df = pivot_df.merge(movies_df[['originalTitle', 'isAdult', 'startYear', 'runtimeMinutes', 'genres']], on='originalTitle', how='left')
-
-    # result_df.to_csv("data/curated/title.principals.csv", index=False)
-    result_df.to_csv("data/curated/" + folder + "/movie_curated.csv", index=False)
+    trimmed_basics_df = filtered_principals_df.drop(columns=['ordering', 'job', 'characters'])
+    trimmed_basics_df.to_csv("data/curated/title.principals.csv", index=False)
+    # result_df.to_csv("data/curated/" + folder + "/movie_curated.csv", index=False)
     print("Curated title principals saved!")
     print()
 
@@ -90,11 +96,13 @@ def get_name_basics(file_path):
 def filter_names(names_df, people_list):
     print("Filtering names of relevant actors, directors and writers...")
     filtered_names_df = names_df[names_df['nconst'].isin(people_list)]
-    filtered_names_df.loc[:, 'primaryProfession'] = filtered_names_df['primaryProfession'].str.replace(',', ' ')
-    filtered_names_df.loc[:, 'knownForTitles'] = filtered_names_df['knownForTitles'].str.replace(',', ' ')
+
+    # filtered_names_df.loc[:, 'primaryProfession'] = filtered_names_df['primaryProfession'].str.replace(',', ' ')
+    # filtered_names_df.loc[:, 'knownForTitles'] = filtered_names_df['knownForTitles'].str.replace(',', ' ')
+    trimmed_basics_df = filtered_names_df.drop(columns=['primaryProfession', 'knownForTitles'])
     print("Total entries:", len(names_df), "\nFiltered length:", len(filtered_names_df))
 
-    filtered_names_df.to_csv("data/curated/name.basics.csv", index=False)
+    trimmed_basics_df.to_csv("data/curated/name.basics.csv", index=False)
     print("Curated names saved!")
     print()
 
@@ -116,4 +124,4 @@ if __name__ == "__main__":
     movie_basics_df = filter_title_basics(movie_basics_df, popular_movies)
     name_basics_df = get_name_basics("data/raw/name.basics.tsv")
     relevant_people = filter_title_principals("data/raw/title.principals.tsv", popular_movies, movie_basics_df, name_basics_df, use)
-    # filter_names(name_basics_df, relevant_people)
+    filter_names(name_basics_df, relevant_people)

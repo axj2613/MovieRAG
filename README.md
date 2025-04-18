@@ -2,12 +2,20 @@
 
 ## Overview
 
-MovieRAG is a Retrieval-Augmented Generation application that uses an external movie data source (IMDb) to provide context-aware
-responses to movie recommendation requests. It combines a ChromaDB based retriever with an OpenAI generator. The retriever
-fetches relevant vector-embedded movie data (based on user prompt) and provides it to the generator with the original 
-user’s query. The generator uses this additional context to generate an accurate and relevant response.
+MovieRAG is a Retrieval (and Cache) -Augmented Generation application that uses an external movie data source (IMDb) to provide context-aware
+responses to movie recommendation requests. It supports the following three types of architectures: 
 
-Update: This application now also supports CAG capabilities on a smaller dataset.
+#### 1. VectorRAG
+Combines a ChromaDB based retriever with an OpenAI generator. The retriever fetches relevant vector-embedded movie data 
+(based on user prompt) and provides it to the generator with the original user’s query. The generator uses this additional
+context to generate an accurate and relevant response.
+
+#### 2. GraphRAG
+Converts user prompt into a Cypher query using the gpt-4, which retrieves accurate movie data from a cloud neo4j graph 
+database instance.
+
+#### 3. CAG
+Cache-Augmented Generation passes in the entire dataset (much smaller than the original) into the chat buffer memory.
 
 ## Table of Contents
 - [Installation](#installation)
@@ -54,9 +62,9 @@ Type: int | Default: 1000
 To authenticate your API reference with OpenAI, [create an API key](https://platform.openai.com/api-keys) and [set 
 environment variable](https://help.openai.com/en/articles/5112595-best-practices-for-api-key-safety) `OPENAI_API_KEY`.
 
-### Running MovieRAG
+### Running ChromaRAG
 
-To execute the MovieRAG application, run:
+To execute the ChromaRAG application, run:
 
 ```
 python chroma_rag.py [-h] [-v] [-k K]
@@ -64,6 +72,23 @@ python chroma_rag.py [-h] [-v] [-k K]
 * -h, --help: Show help message and exit.
 * -v, --verbose: Enable verbose mode to print results from the query similarity search.
 * -k K: Specify the number of documents to return from the query similarity search (default: 3).
+
+### Export neo4j Instance Credentials
+Set up a free cloud instance of the Neo4j database on [Neo4j Aura](https://neo4j.com/product/auradb/) (or locally using 
+the [Neo4j Desktop](https://neo4j.com/download/) application). Use `NEO4J_URI`, `NEO4J_USERNAME`, and `NEO4J_PASSWORD`
+values from the instance to establish environment variables. Import data to this instance from the `data/curated/graph` 
+folder. Feel free to use the attached `neo4j_importer_cypher_script.cypher` to set up graph schema.
+
+
+### Running Neo4jRAG
+
+To execute the Neo4jRAG application, run:
+
+```
+python neo4j_rag.py [-h] [-v]
+```
+* -h, --help: Show help message and exit.
+* -v, --verbose: Enable verbose mode to print results from the graph cypher chain.
 
 ### Running MovieCAG
 
@@ -76,8 +101,8 @@ python cag.py [-h] [-v]
 * -v, --verbose: Enable verbose mode to print the entire input fed into the chat model.
 
 ## Features
-* #### Retrieval-Augmented Generation (RAG)
-    Combines ChromaDB-based document retrieval with OpenAI's GPT to generate context-aware movie recommendations.
+* #### Vector Retrieval-Augmented Generation (RAG)
+    Combines ChromaDB-based document retrieval with OpenAI's GPT to generate context-aware movie recommendations. Ideal for unstructured data.
 * #### Cache-Augmented Generation (CAG)
     Provides a cache memory to OpenAI's GPT to generate context-aware movie recommendations.
 * #### Context-Enriched Responses

@@ -10,7 +10,7 @@ def load_documents(path):
     print("Loading documents...")
     document_loader = CSVLoader(file_path=path)
     documents = document_loader.load()
-    context_text = "\n\n".join([doc.page_content for doc in documents])
+    context_text = "\n\n--------\n\n".join([doc.page_content for doc in documents])
     return context_text
 
 def load_model(context_text, verbose_flag):
