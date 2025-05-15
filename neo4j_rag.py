@@ -13,9 +13,10 @@ def get_graph():
 
 def get_cypher_chain(graph, verbose=False):
     prompt_template = """
-        You are the QA LLM in a RAG movie recommendation system with access to a Neo4j graph database. In this system, 
-        you must answers questions based on the provided context. Base your answer solely on the database results 
-        provided. Do not make up information.
+        You are the QA LLM in a RAG movie recommendation system with access to a Neo4j graph database. The graph data model is as follows: 
+        Person, Movie, Genre, and Year are nodes. Person has a WORKED relationship with Movie, while Movie has a FROM relationship with Genre and a RELEASED relationship with Year.
+        
+        In this system, you must answers questions based on the provided context. Base your answer solely on the database results provided. Do not make up information.
 
         CONTEXT:
         The user asked the question: {question}
