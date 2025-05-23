@@ -13,19 +13,19 @@
 //
 // Create node uniqueness constraints, ensuring no duplicates for the given node label and ID property exist in the database. This also ensures no duplicates are introduced in future.
 //
-// NOTE: The following constraint creation syntax is generated based on the current connected database version 5.27.0.
+// NOTE: The following constraint creation syntax is valid for database version 4.4.0 and above.
 CREATE CONSTRAINT `nconst_Person_uniq` IF NOT EXISTS
 FOR (n: `Person`)
 REQUIRE (n.`nconst`) IS UNIQUE;
 CREATE CONSTRAINT `tconst_Movie_uniq` IF NOT EXISTS
 FOR (n: `Movie`)
 REQUIRE (n.`tconst`) IS UNIQUE;
-CREATE CONSTRAINT `startYear_Year_uniq` IF NOT EXISTS
+CREATE CONSTRAINT `year_Year_uniq` IF NOT EXISTS
 FOR (n: `Year`)
-REQUIRE (n.`startYear`) IS UNIQUE;
-CREATE CONSTRAINT `genres_Genre_uniq` IF NOT EXISTS
+REQUIRE (n.`year`) IS UNIQUE;
+CREATE CONSTRAINT `name_Genre_uniq` IF NOT EXISTS
 FOR (n: `Genre`)
-REQUIRE (n.`genres`) IS UNIQUE;
+REQUIRE (n.`name`) IS UNIQUE;
 
 :param {
   idsToSkip: []
@@ -44,7 +44,7 @@ CALL {
   WITH row
   MERGE (n: `Person` { `nconst`: row.`nconst` })
   SET n.`nconst` = row.`nconst`
-  SET n.`primaryName` = row.`primaryName`
+  SET n.`name` = row.`primaryName`
 } IN TRANSACTIONS OF 10000 ROWS;
 
 LOAD CSV WITH HEADERS FROM ($file_path_root + $file_1) AS row
@@ -65,8 +65,8 @@ WITH row
 WHERE NOT row.`startYear` IN $idsToSkip AND NOT toInteger(trim(row.`startYear`)) IS NULL
 CALL {
   WITH row
-  MERGE (n: `Year` { `startYear`: toInteger(trim(row.`startYear`)) })
-  SET n.`startYear` = toInteger(trim(row.`startYear`))
+  MERGE (n: `Year` { `year`: toInteger(trim(row.`startYear`)) })
+  SET n.`year` = toInteger(trim(row.`startYear`))
 } IN TRANSACTIONS OF 10000 ROWS;
 
 LOAD CSV WITH HEADERS FROM ($file_path_root + $file_2) AS row
@@ -74,8 +74,8 @@ WITH row
 WHERE NOT row.`genres` IN $idsToSkip AND NOT row.`genres` IS NULL
 CALL {
   WITH row
-  MERGE (n: `Genre` { `genres`: row.`genres` })
-  SET n.`genres` = row.`genres`
+  MERGE (n: `Genre` { `name`: row.`genres` })
+  SET n.`name` = row.`genres`
 } IN TRANSACTIONS OF 10000 ROWS;
 
 
@@ -85,12 +85,12 @@ CALL {
 // Load relationships in batches, one relationship type at a time. Relationships are created using a MERGE statement, meaning only one relationship of a given type will ever be created between a pair of nodes.
 LOAD CSV WITH HEADERS FROM ($file_path_root + $file_3) AS row
 WITH row 
+WHERE row.`category` = 'actor'
 CALL {
   WITH row
   MATCH (source: `Person` { `nconst`: row.`nconst` })
   MATCH (target: `Movie` { `tconst`: row.`tconst` })
-  MERGE (source)-[r: `WORKED`]->(target)
-  SET r.`category` = row.`category`
+  MERGE (source)-[r: `ACTED`]->(target)
 } IN TRANSACTIONS OF 10000 ROWS;
 
 LOAD CSV WITH HEADERS FROM ($file_path_root + $file_1) AS row
@@ -98,7 +98,7 @@ WITH row
 CALL {
   WITH row
   MATCH (source: `Movie` { `tconst`: row.`tconst` })
-  MATCH (target: `Year` { `startYear`: toInteger(trim(row.`startYear`)) })
+  MATCH (target: `Year` { `year`: toInteger(trim(row.`startYear`)) })
   MERGE (source)-[r: `RELEASED`]->(target)
 } IN TRANSACTIONS OF 10000 ROWS;
 
@@ -107,6 +107,126 @@ WITH row
 CALL {
   WITH row
   MATCH (source: `Movie` { `tconst`: row.`tconst` })
-  MATCH (target: `Genre` { `genres`: row.`genres` })
+  MATCH (target: `Genre` { `name`: row.`genres` })
   MERGE (source)-[r: `FROM`]->(target)
+} IN TRANSACTIONS OF 10000 ROWS;
+
+LOAD CSV WITH HEADERS FROM ($file_path_root + $file_3) AS row
+WITH row 
+WHERE row.`category` = 'actress'
+CALL {
+  WITH row
+  MATCH (source: `Person` { `nconst`: row.`nconst` })
+  MATCH (target: `Movie` { `tconst`: row.`tconst` })
+  MERGE (source)-[r: `ACTED`]->(target)
+} IN TRANSACTIONS OF 10000 ROWS;
+
+LOAD CSV WITH HEADERS FROM ($file_path_root + $file_3) AS row
+WITH row 
+WHERE row.`category` = 'director'
+CALL {
+  WITH row
+  MATCH (source: `Person` { `nconst`: row.`nconst` })
+  MATCH (target: `Movie` { `tconst`: row.`tconst` })
+  MERGE (source)-[r: `DIRECTED`]->(target)
+} IN TRANSACTIONS OF 10000 ROWS;
+
+LOAD CSV WITH HEADERS FROM ($file_path_root + $file_3) AS row
+WITH row 
+WHERE row.`category` = 'writer'
+CALL {
+  WITH row
+  MATCH (source: `Person` { `nconst`: row.`nconst` })
+  MATCH (target: `Movie` { `tconst`: row.`tconst` })
+  MERGE (source)-[r: `WROTE`]->(target)
+} IN TRANSACTIONS OF 10000 ROWS;
+
+LOAD CSV WITH HEADERS FROM ($file_path_root + $file_3) AS row
+WITH row 
+WHERE row.`category` = 'producer'
+CALL {
+  WITH row
+  MATCH (source: `Person` { `nconst`: row.`nconst` })
+  MATCH (target: `Movie` { `tconst`: row.`tconst` })
+  MERGE (source)-[r: `PRODUCED`]->(target)
+} IN TRANSACTIONS OF 10000 ROWS;
+
+LOAD CSV WITH HEADERS FROM ($file_path_root + $file_3) AS row
+WITH row 
+WHERE row.`category` = 'composer'
+CALL {
+  WITH row
+  MATCH (source: `Person` { `nconst`: row.`nconst` })
+  MATCH (target: `Movie` { `tconst`: row.`tconst` })
+  MERGE (source)-[r: `COMPOSED`]->(target)
+} IN TRANSACTIONS OF 10000 ROWS;
+
+LOAD CSV WITH HEADERS FROM ($file_path_root + $file_3) AS row
+WITH row 
+WHERE row.`category` = 'cinematographer'
+CALL {
+  WITH row
+  MATCH (source: `Person` { `nconst`: row.`nconst` })
+  MATCH (target: `Movie` { `tconst`: row.`tconst` })
+  MERGE (source)-[r: `CINEMATOGRAPHED`]->(target)
+} IN TRANSACTIONS OF 10000 ROWS;
+
+LOAD CSV WITH HEADERS FROM ($file_path_root + $file_3) AS row
+WITH row 
+WHERE row.`category` = 'editor'
+CALL {
+  WITH row
+  MATCH (source: `Person` { `nconst`: row.`nconst` })
+  MATCH (target: `Movie` { `tconst`: row.`tconst` })
+  MERGE (source)-[r: `EDITED`]->(target)
+} IN TRANSACTIONS OF 10000 ROWS;
+
+LOAD CSV WITH HEADERS FROM ($file_path_root + $file_3) AS row
+WITH row 
+WHERE row.`category` = 'production_designer'
+CALL {
+  WITH row
+  MATCH (source: `Person` { `nconst`: row.`nconst` })
+  MATCH (target: `Movie` { `tconst`: row.`tconst` })
+  MERGE (source)-[r: `DESIGNED PRODUCTION`]->(target)
+} IN TRANSACTIONS OF 10000 ROWS;
+
+LOAD CSV WITH HEADERS FROM ($file_path_root + $file_3) AS row
+WITH row 
+WHERE row.`category` = 'self'
+CALL {
+  WITH row
+  MATCH (source: `Person` { `nconst`: row.`nconst` })
+  MATCH (target: `Movie` { `tconst`: row.`tconst` })
+  MERGE (source)-[r: `SELF`]->(target)
+} IN TRANSACTIONS OF 10000 ROWS;
+
+LOAD CSV WITH HEADERS FROM ($file_path_root + $file_3) AS row
+WITH row 
+WHERE row.`category` = 'casting_director'
+CALL {
+  WITH row
+  MATCH (source: `Person` { `nconst`: row.`nconst` })
+  MATCH (target: `Movie` { `tconst`: row.`tconst` })
+  MERGE (source)-[r: `DIRECTED CASTING`]->(target)
+} IN TRANSACTIONS OF 10000 ROWS;
+
+LOAD CSV WITH HEADERS FROM ($file_path_root + $file_3) AS row
+WITH row 
+WHERE row.`category` = 'archive_footage'
+CALL {
+  WITH row
+  MATCH (source: `Person` { `nconst`: row.`nconst` })
+  MATCH (target: `Movie` { `tconst`: row.`tconst` })
+  MERGE (source)-[r: `ARCHIVED FOOTAGE`]->(target)
+} IN TRANSACTIONS OF 10000 ROWS;
+
+LOAD CSV WITH HEADERS FROM ($file_path_root + $file_3) AS row
+WITH row 
+WHERE row.`category` = 'archive_sound'
+CALL {
+  WITH row
+  MATCH (source: `Person` { `nconst`: row.`nconst` })
+  MATCH (target: `Movie` { `tconst`: row.`tconst` })
+  MERGE (source)-[r: `ARCHIVED SOUND`]->(target)
 } IN TRANSACTIONS OF 10000 ROWS;
